@@ -6,6 +6,7 @@ const cookieParser = require("cookie-parser");
 require("dotenv").config();
 const connectDB = require("./db/connectDB");
 const User = require("./models/User");
+const Task = require("./models/Task");
 const port = process.env.PORT || 3000;
 
 // middlewares
@@ -102,6 +103,16 @@ async function run() {
           return res.send({ message: "user already exists", insertedId: null });
         }
         const result = await User.create(user);
+        res.send(result);
+      } catch (error) {
+        console.log(error);
+      }
+    });
+    // tasks related apis
+    app.post("/tasks", async (req, res) => {
+      try {
+        const task = req.body;
+        const result = await Task.create(task);
         res.send(result);
       } catch (error) {
         console.log(error);
