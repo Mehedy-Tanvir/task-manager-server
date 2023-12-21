@@ -4,7 +4,8 @@ const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 require("dotenv").config();
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const connectDB = require("./db/connectDB");
+const User = require("./models/User");
 const port = process.env.PORT || 3000;
 
 // middlewares
@@ -48,25 +49,12 @@ app.get("/", (req, res) => {
   res.send("Task Manager Server Running");
 });
 
-// console.log(process.env.DB_USER, process.env.DB_PASSWORD);
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster1.vnja0wm.mongodb.net/?retryWrites=true&w=majority`;
-
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  },
-});
 async function run() {
   // Send a ping to confirm a successful connection
   try {
     // Get the database and collection on which to run the operation
 
-    const database = client.db("taskManager");
-
-    const usersCollection = database.collection("users");
+    await connectDB();
 
     // auth related api
     app.post("/jwt", async (req, res) => {
@@ -108,18 +96,17 @@ async function run() {
     app.post("/users", async (req, res) => {
       try {
         const user = req.body;
-        const result = await usersCollection.insertOne(user);
+        const query = { email: user.email };
+        const existingUser = await User.findOne(query);
+        if (existingUser) {
+          return res.send({ message: "user already exists", insertedId: null });
+        }
+        const result = await User.create(user);
         res.send(result);
       } catch (error) {
         console.log(error);
       }
     });
-
-    // db ping
-    await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
