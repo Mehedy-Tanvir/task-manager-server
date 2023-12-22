@@ -14,21 +14,24 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5174"],
+    origin: [
+      "https://tasky-task-manager-c6b10.web.app",
+      "https://tasky-task-manager-c6b10.firebaseapp.com",
+    ],
     credentials: true,
   })
 );
 app.use(cookieParser());
 
-// my middlewares
-const verifyId = async (req, res, next) => {
-  const id = req.params.id;
-  const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(id);
-  if (!isValidObjectId) {
-    return res.status(404).send({ error: "invalid id" });
-  }
-  next();
-};
+// // my middlewares
+// const verifyId = async (req, res, next) => {
+//   const id = req.params.id;
+//   const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(id);
+//   if (!isValidObjectId) {
+//     return res.status(404).send({ error: "invalid id" });
+//   }
+//   next();
+// };
 
 // auth middlewares
 const verifyToken = async (req, res, next) => {
@@ -110,7 +113,7 @@ async function run() {
       }
     });
     // tasks related apis
-    app.post("/tasks", async (req, res) => {
+    app.post("/tasks", verifyToken, async (req, res) => {
       try {
         const task = req.body;
         const result = await Task.create(task);
@@ -119,7 +122,7 @@ async function run() {
         console.log(error);
       }
     });
-    app.get("/tasks/:id", async (req, res) => {
+    app.get("/tasks/:id", verifyToken, async (req, res) => {
       try {
         const taskId = req.params.id;
 
@@ -159,7 +162,7 @@ async function run() {
     //     console.log(error);
     //   }
     // });
-    app.delete("/tasks/:taskId", async (req, res) => {
+    app.delete("/tasks/:taskId", verifyToken, async (req, res) => {
       try {
         const taskId = req.params.taskId;
 
@@ -188,7 +191,7 @@ async function run() {
       }
     });
 
-    app.patch("/tasks/:taskId", async (req, res) => {
+    app.patch("/tasks/:taskId", verifyToken, async (req, res) => {
       try {
         const taskId = req.params.taskId;
         const updatedFields = req.body;
@@ -207,7 +210,7 @@ async function run() {
         res.status(500).json({ message: "Internal Server Error" });
       }
     });
-    app.get("/tasks", async (req, res) => {
+    app.get("/tasks", verifyToken, async (req, res) => {
       try {
         const email = req.query.email;
         const result = await Task.find({ email });
