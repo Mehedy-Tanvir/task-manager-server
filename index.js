@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+const mongoose = require("mongoose");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
@@ -118,6 +119,35 @@ async function run() {
         console.log(error);
       }
     });
+    app.delete("/tasks/:taskId", async (req, res) => {
+      try {
+        const taskId = req.params.taskId;
+
+        // Check if the provided taskId is a valid ObjectId
+        if (!mongoose.Types.ObjectId.isValid(taskId)) {
+          return res.status(400).json({ message: "Invalid taskId format" });
+        }
+
+        // Check if the task exists
+        const existingTask = await Task.findById(taskId);
+        if (!existingTask) {
+          return res.status(404).json({ message: "Task not found" });
+        }
+
+        const result = await Task.findByIdAndDelete(taskId);
+
+        if (!result) {
+          return res.status(404).json({ message: "Task not found" });
+        }
+        res.json(result);
+      } catch (error) {
+        console.error(error);
+        res
+          .status(500)
+          .json({ message: "Internal Server Error", error: error.message });
+      }
+    });
+
     app.patch("/tasks/:taskId", async (req, res) => {
       try {
         const taskId = req.params.taskId;
