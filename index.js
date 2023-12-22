@@ -118,6 +118,25 @@ async function run() {
         console.log(error);
       }
     });
+    app.patch("/tasks/:taskId", async (req, res) => {
+      try {
+        const taskId = req.params.taskId;
+        const updatedFields = req.body;
+
+        const result = await Task.findByIdAndUpdate(taskId, updatedFields, {
+          new: true,
+        });
+
+        if (!result) {
+          return res.status(404).json({ message: "Task not found" });
+        }
+
+        res.json(result);
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal Server Error" });
+      }
+    });
     app.get("/tasks", async (req, res) => {
       try {
         const email = req.query.email;
