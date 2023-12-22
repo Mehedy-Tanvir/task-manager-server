@@ -119,6 +119,46 @@ async function run() {
         console.log(error);
       }
     });
+    app.get("/tasks/:id", async (req, res) => {
+      try {
+        const taskId = req.params.id;
+
+        // Check if the provided taskId is a valid ObjectId
+        if (!mongoose.Types.ObjectId.isValid(taskId)) {
+          return res.status(400).json({ message: "Invalid taskId format" });
+        }
+
+        // Check if the task exists
+        const existingTask = await Task.findById(taskId);
+        if (!existingTask) {
+          return res.status(404).json({ message: "Task not found" });
+        }
+        res.json(existingTask);
+      } catch (error) {
+        console.error(error);
+        res
+          .status(500)
+          .json({ message: "Internal Server Error", error: error.message });
+      }
+    });
+    // app.put("/tasks/:id", async (req, res) => {
+    //   try {
+    //     const taskId = req.params.id;
+    //     const updatedTask = req.body;
+
+    //     // Check if the provided taskId is a valid Object
+    //     if (!mongoose.Types.ObjectId.isValid(taskId)) {
+    //       return res.status(400).json({ message: "Invalid taskId format" });
+    //     }
+
+    //     const result = await Task.findByIdAndUpdate(taskId, updatedTask, {
+    //       new: true,
+    //     });
+    //     res.send(result);
+    //   } catch (error) {
+    //     console.log(error);
+    //   }
+    // });
     app.delete("/tasks/:taskId", async (req, res) => {
       try {
         const taskId = req.params.taskId;
