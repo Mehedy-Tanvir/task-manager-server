@@ -118,6 +118,15 @@ async function run() {
         console.log(error);
       }
     });
+    app.get("/tasks", async (req, res) => {
+      try {
+        const email = req.query.email;
+        const result = await Task.find({ email });
+        res.send(result);
+      } catch (error) {
+        console.log(error);
+      }
+    });
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
